@@ -1,0 +1,22 @@
+__pycache__
+
+media/docs/
+
+# pycharm
+.idea/
+*.pyc
+.DS_Store
+.di
+
+# environment
+venv
+env
+*.env
+
+pg_data/
+
+local.py
+
+dump.rdb
+celerybeat-schedule
+
