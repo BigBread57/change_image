@@ -9,8 +9,8 @@ class Picture(models.Model):
     name = models.CharField('Название изображения', max_length=100)
     url = models.SlugField('URL изображения', null=True)
     picture = models.ImageField()
-    width = models.PositiveSmallIntegerField('Ширина изображения', blank=True)
-    height = models.PositiveSmallIntegerField('Высота изображения', blank=True)
+    width = models.PositiveSmallIntegerField('Ширина изображения', blank=True, null=True)
+    height = models.PositiveSmallIntegerField('Высота изображения', blank=True, null=True)
     parent_picture = models.OneToOneField('picture.Picture', on_delete=models.SET_NULL,
                                           verbose_name='Родительская картинка', related_name='pictures', null=True)
 
