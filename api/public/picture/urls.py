@@ -1,6 +1,6 @@
 from django.urls import path
 
-from api.public.picture.views import PictureListCreateApiView, PictureRetrieveDestroyApiView, PictureResizeApiView
+from api.public.picture.views import PictureRetrieveDestroyApiView, PictureResizeApiView, PictureListCreateApiView
 
 app_name = 'picture'
 

@@ -4,12 +4,11 @@ import requests
 
 from PIL import Image
 from django.core.files.base import ContentFile
-from django.db import IntegrityError
 from rest_framework import generics, status, exceptions
 from rest_framework.response import Response
 
-from api.public.picture.serializers import PictureListCreateSerializer, PictureRetrieveDestroySerializer, \
-    PictureResizeSerializer
+from api.public.picture.serializers import PictureRetrieveDestroySerializer, PictureResizeSerializer, \
+    PictureListCreateSerializer
 from picture.models import Picture
 
 
@@ -18,64 +17,59 @@ class PictureListCreateApiView(generics.ListCreateAPIView):
     Предтавление для получения списка картинок и создания картинки
     """
 
-    queryset = Picture.objects.all().order_by('-id')
+    queryset = Picture.objects.all()
     serializer_class = PictureListCreateSerializer
-
-    def perform_create(self, serializer):
-        url = serializer.validated_data.get('url')
-        if not url:
-            name_picture = serializer.validated_data.get('picture')
-            picture = Image.open(name_picture)
-            serializer.save(name=name_picture, width=picture.width, height=picture.height)
-        serializer.save()
 
     def create(self, request, *args, **kwargs):
         url = request.data.get('url')
         picture = request.data.get('picture')
 
+        if not url and not picture:
+            raise exceptions.ValidationError(detail={'message': 'Необходимо ввести любой из параметров'})
+
+        # Если был передан url
         if url:
             name_picture = url.split('/')[-1:][0]
+            # Проверяем есть ли по заданному url картинки
             try:
                 resp = requests.get(url, stream=True).raw
             except requests.exceptions.RequestException as e:
                 return Response(status=status.HTTP_204_NO_CONTENT, data={
                     'message': 'По заданному адресу ничего нет'})
-
             try:
                 img = Image.open(resp)
             except IOError:
                 return Response(status=status.HTTP_204_NO_CONTENT, data={
                     'message': 'Невозможно открыть изображение'})
 
-            # with BytesIO() as buf:
-            #     img.save(buf, 'jpeg')
-            #     picture_bytes = buf.getvalue()
-            # django_file = ContentFile(picture_bytes)
+            # Создаем объект картинки и заносим информацию в БД.
+            # Преобразуем наше изображение в строковое содержимое байтов.
+            with BytesIO() as buf:
+                img.save(buf, 'jpeg')
+                picture_bytes = buf.getvalue()
+            django_file = ContentFile(picture_bytes)
 
-            # new_picture = Picture(name=name_picture, width=img.width, height=img.height)
-            # new_picture.picture.save(name_picture, django_file)
-            # print(new_picture.id)
+            new_picture = Picture(url=url)
+            new_picture.picture.save(name_picture, django_file)
+            new_picture.save()
 
-            data_for_serializer = {'name': name_picture,
-                                   'url': url,
-                                   'width': img.width,
-                                   'height': img.height,
-                                   'parent_picture': 'null'}
+            # Представляем данные для сериализатора и передаем id созданного объекта
+            data_for_serializer = {'url': url,
+                                   'picture': new_picture.picture,
+                                   'picture_id': new_picture.id}
 
+        # Если был передана картинка
         if picture:
             data_for_serializer = request.data
 
+        # Если был передана и форма и картинка
         if picture and url:
             data_for_serializer = request.data
 
         serializer = self.get_serializer(data=data_for_serializer)
-        print('1')
         serializer.is_valid(raise_exception=True)
-        print('2')
         self.perform_create(serializer)
-        print('3')
         headers = self.get_success_headers(serializer.data)
-        print('4')
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
