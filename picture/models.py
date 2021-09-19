@@ -28,7 +28,7 @@ class PictureInfo(models.Model):
     width = models.PositiveSmallIntegerField('Ширина изображения', blank=True, null=True)
     height = models.PositiveSmallIntegerField('Высота изображения', blank=True, null=True)
     parent_picture = models.ForeignKey(Picture, on_delete=models.SET_NULL, verbose_name='Родительская картинка',
-                                       related_name='picture_information_parent', null=True)
+                                       null=True, default=None)
 
     class Meta:
         verbose_name = 'Информация о картинке'
