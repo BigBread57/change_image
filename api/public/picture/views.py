@@ -139,7 +139,6 @@ class PictureResizeApiView(generics.CreateAPIView):
         children_picture = Picture()
         children_picture.picture.save(name_children_picture, django_file)
         children_picture.save()
-
         PictureInfo.objects.create(name=name_children_picture, picture=children_picture,
                                    width=width, height=height, parent_picture=obj_picture.picture)
         serializer = self.get_serializer(data={'csrfmiddlewaretoken': request.data.get('csrfmiddlewaretoken'),

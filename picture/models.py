@@ -14,7 +14,7 @@ class Picture(models.Model):
         verbose_name_plural = 'Картинки'
 
     def __str__(self):
-        return str(self.picture)
+        return str(self.id)
 
 
 class PictureInfo(models.Model):
@@ -22,7 +22,7 @@ class PictureInfo(models.Model):
     Модель информации об изображении
     """
 
-    name = models.CharField('Название изображения', max_length=100)
+    name = models.CharField('Название изображения', max_length=1000)
     picture = models.OneToOneField(Picture, on_delete=models.CASCADE,
                                    verbose_name='Картинка', related_name='picture_information', null=True)
     width = models.PositiveSmallIntegerField('Ширина изображения', blank=True, null=True)
